@@ -1,4 +1,5 @@
 import os
+from threading import Thread
 
 from flask import Flask, render_template, session, redirect, url_for, flash
 from flask_script import Manager, Shell
@@ -24,7 +25,7 @@ app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 migrate = Migrate(app,db)
-app.config['MAIL_SERVER'] = 'smtp.gmail.com' 
+app.config['MAIL_SERVER'] = 'smtp.googlemail.com' 
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
@@ -38,7 +39,13 @@ def send_mail(to, subject, template, **kwargs):
     msg = Message(subject=app.config['FLASKY_MAIL_SUBJECT_PREFIX'] + subject, sender=app.config['FLASKY_MAIL_SENDER'] , recipients=[to])
     msg.body = render_template(template + '.txt', **kwargs)
     msg.html = render_template(template + '.html', **kwargs)
-    mail.send(msg)
+    thr = Thread(target=send_async_mail, args=[msg])
+    thr.start()
+    return thr
+
+def send_async_mail(msg):
+    with app.app_context():
+        mail.send(msg)
 
 class Role(db.Model):
     __tablename__ = 'roles'
