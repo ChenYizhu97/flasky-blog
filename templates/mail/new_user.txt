@@ -1,0 +1,3 @@
+{% if user %}
+ you get a new user:{{ user.username }} !
+{% endif %}
