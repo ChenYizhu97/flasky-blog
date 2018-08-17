@@ -1,0 +1,11 @@
+Dear {{ user.username }}
+Welcome to Flaksy!
+
+To confirm your account please click on the following link:
+http://{{ url_for('auth.confirm', _external=True, token=token) }}
+
+Sincerely,
+
+The Flaksy Team
+
+Note: replies to this email address are not monitored.

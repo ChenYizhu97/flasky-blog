@@ -1,0 +1,10 @@
+{% extends 'base.jinja' %}
+
+{% block title %}Flasky - Unconfirmed{% endblock %}
+
+{% block pagecontent %}
+    <div class="page-header">
+        <h1>You are not confirmed, {{ current_user.username }}</h1>
+    </div>
+    <p>Click <a href={{ url_for('auth.resend_confirmation', _external=True) }}>here</a> to confirm </p>
+{% endblock %}
