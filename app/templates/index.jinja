@@ -1,5 +1,6 @@
 {% extends 'base.jinja' %}
 {% import 'bootstrap/wtf.html' as wtf %}
+{% import "_macros.jinja" as macros%}
 
 {% block pagecontent %}
     <div class="page-header">
@@ -17,5 +18,20 @@
             <p> please to meet you! </p>
         {% endif %}
     </div>
-    {{ wtf.quick_form(form) }}
+    <div>
+        {% if current_user.can(Permission.WRITE_ARTICLES) %} 
+            {{ wtf.quick_form(form) }}
+        {% endif %}
+    </div>
+    {% include '_posts.jinja' %}
+    {% if pagination %}
+    <div class="pagination">
+        {{ macros.pagination_widget(pagination, '.index') }}
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    {{ pagedown.include_pagedown() }}
 {% endblock %}
