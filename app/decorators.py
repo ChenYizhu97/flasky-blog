@@ -7,11 +7,11 @@ from .models import Permission
 
 def permission_required(permission):
     def decorator(f):
-        @wraps
+        @wraps(f)
         def decorated_function(*args, **kwargs):
-            if not current_user.can(permission)
+            if not current_user.can(permission):
                 abort(403)
-            return f(*arg, **kwargs)
+            return f(*args, **kwargs)
         return decorated_function
     return decorator
 

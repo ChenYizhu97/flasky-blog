@@ -1,7 +1,10 @@
+from datetime import datetime
+import hashlib
+
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-from flask import current_app
+from flask import current_app, request
 
 from . import db
 from . import login_manager
@@ -51,6 +54,12 @@ class User(db.Model, UserMixin):
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
+    name =  db.Column(db.String(64))
+    location = db.Column(db.String(64))
+    about_me = db.Column(db.Text())
+    last_seen = db.Column(db.DateTime(), default = datetime.utcnow)
+    member_since = db.Column(db.DateTime(), default = datetime.utcnow)
+    avatar_hash = db.Column(db.String(32))
 
     @property
     def password(self):
@@ -86,9 +95,11 @@ class User(db.Model, UserMixin):
         super(User, self).__init__(**kwargs)
         if self.role is None:
             if self.email == current_app.config['FLASKY_ADMIN']:
-                self.role == Role.query.filter_by(permissions=0xff).first()
+                self.role = Role.query.filter_by(permissions=0xff).first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
+        if self.email is not None and self.avatar_hash is None:
+            self.avatar_hash = hashlib.md5(self.email.encode('utf-8')).hexdigest()
 
     def can(self, permissions):
         return self.role is not None and \
@@ -96,6 +107,22 @@ class User(db.Model, UserMixin):
     
     def is_administrator(self):
         return self.can(Permission.ADMINSTER)
+
+    def ping(self):
+        self.last_seen = datetime.utcnow()
+        db.session.add()
+
+    def change_email(self, token):
+        pass
+
+    def gravatar(self, size=100, default='identicon', rating='g'):
+        if request.is_secure:
+            url = 'https://secure.gravatar.com/avatar'
+        else:
+            url = 'http://www.gravatar.com/avatar'
+        hash = self.avatar_hash or hashlib.md5(self.email.encode('utf-8')).hexdigest()
+        return '{url}/{hash}?s={size}&d={default}&r={rating}'.format(
+            url=url, hash=hash, default=default, size=size, rating=rating)
 
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
