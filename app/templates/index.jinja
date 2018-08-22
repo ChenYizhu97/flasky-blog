@@ -17,6 +17,11 @@
         {% else %}
             <p> please to meet you! </p>
         {% endif %}
+        {% if show_followed %}
+            <a class="btn btn-default" href="{{ url_for('.show_all') }}"> see all posts </a>
+        {% else %}
+            <a class="btn btn-default" href="{{ url_for('.show_followed') }}"> see followed posts</a>
+        {% endif %}
     </div>
     <div>
         {% if current_user.can(Permission.WRITE_ARTICLES) %} 

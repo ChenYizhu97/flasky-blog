@@ -1,0 +1,16 @@
+{% extends 'base.jinja' %}
+{% import "_macros.jinja" as macros%}
+
+{% block pagecontent %}
+    <div class='page=header'>
+        <h1>{{ title + ' ' + user.username }} </h1>
+    </div>
+    {% for follow in follows %}
+        {% if follow.user != user  %}
+            <p>{{ follow.user.username }}</p>
+            <img src="{{ follow.user.gravatar() }}" class="img-rounded profile-thumbnail" >
+            <p>{{ moment(follow.timestamp).format('L') }}</p>
+        {% endif %}
+    {% endfor %}
+    {{ macros.pagination_widget(pagination, endpoint, username=user.username) }}
+{% endblock %}

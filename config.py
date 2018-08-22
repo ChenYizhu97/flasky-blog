@@ -22,6 +22,7 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('DEV_DATABASE_URL') or \
         'sqlite:///' + os.path.join(basedir, 'data-dev.sqlite')
+    FLASKY_FOLLOW_PER_PAGE = 10
 
 class TestingConfig(Config):
     TESTING = True
