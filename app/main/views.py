@@ -3,9 +3,9 @@ from flask import render_template, session, redirect, url_for, abort, flash, req
 from flask_login import login_required, current_user
 
 from . import main
-from .forms import PostForm, EditProfileForm, EditProfileAdminForm
+from .forms import PostForm, EditProfileForm, EditProfileAdminForm, CommentForm
 from .. import db
-from ..models import User, Permission, Post
+from ..models import User, Permission, Post, Comment
 from ..decorators import admin_required, permission_required
 
 @main.route('/', methods=['GET', 'POST'])
@@ -32,7 +32,7 @@ def index():
                     form=form, 
                     posts=posts,
                     pagination=pagination,
-                    show_followed=show_followed)
+                    show_followed = show_followed)
 
 @main.route('/user/<username>')
 def user(username):
@@ -84,8 +84,11 @@ def edit_profile_admin(id):
     form.confirmed = user.confirmed
     return render_template('edit_profile.jinja', form=form, user=user)
 
-@main.route('/post/<int:id>')
+@main.route('/post/<int:id>', methods=['GET', 'POST'])
 def post(id):
+    form = CommentForm()
+    if form.validate_on_submit():
+        comment = Comment()
     post = Post.query.get_or_404(id)
     return render_template('post.jinja', posts=[post])
 

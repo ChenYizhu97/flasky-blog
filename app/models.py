@@ -70,7 +70,9 @@ class User(db.Model, UserMixin):
     last_seen = db.Column(db.DateTime(), default = datetime.utcnow)
     member_since = db.Column(db.DateTime(), default = datetime.utcnow)
     avatar_hash = db.Column(db.String(32))
+
     posts = db.relationship('Post', backref='author', lazy='dynamic')
+    comments = db.relationship('Comment', backref='author', lazy='dynamic')
 
     followed = db.relationship('Follow', foreign_keys=[Follow.follower_id],
                                 backref=db.backref('follower', lazy='joined'),
@@ -186,6 +188,7 @@ class User(db.Model, UserMixin):
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
+
     @staticmethod
     def add_self_followers():
         for user in User.query.all():
@@ -208,6 +211,8 @@ class Post(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id')) 
     body_html = db.Column(db.Text)
+
+    comments = db.relationship('Comment', backref='post', lazy='dynamic')
 
     @staticmethod
     def generate_fake(count=100):
@@ -236,7 +241,27 @@ class Post(db.Model):
 db.event.listen(Post.body, 'set', Post.on_change_body)
 login_manager.anonymous_user = AnonymousUser
 
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text)
+    body_html = db.Column(db.Text)
+    post_id = db.Column(db.Integer)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    post_id = db.Column(db.Integer, db.ForeignKey('posts.id'))
+    disabled = db.Column(db.Boolean, default=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+    @staticmethod
+    def on_change_body(target, value, oldvalue, initiator):
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
+                        'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
+                        'h1', 'h2', 'h3', 'p']
+        target.body_html = bleach.linkifier(bleach.clean(
+            markdown(value, output_format='html'),
+            tags=allowed_tags, strip=True
+        ))
+
+db.event.listen(Comment.body, 'set', Post.on_change_body)
 
 class Permission:
     FOLLOW = 0x01
