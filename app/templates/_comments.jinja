@@ -1,4 +1,4 @@
-<ul class="comment">
+<ul class="comments">
     {% for comment in comments %}
         <li class="comment">
             <div class="comment-thumbnail">
@@ -14,7 +14,7 @@
                     {{ comment.author.username }}
                 </a>
             </div>
-            <div class="comment-body">
+            <div class="comment-content">
                 {% if comment.disabled %}
                     This comment has been disabled by a moderator
                 {% endif %}
