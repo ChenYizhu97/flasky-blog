@@ -93,7 +93,7 @@ def post(id):
     pagination = Comment.query.filter_by(post_id=post.id) \
                 .order_by(Comment.timestamp.asc()).paginate(
                         page,
-                        per_page=current_app.config['FLASKY_POSTS_PER_PAGE'],
+                        per_page=current_app.config['FLASKY_COMMENTS_PER_PAGE'],
                         error_out=False
                     )
     form = CommentForm()
@@ -205,8 +205,18 @@ def changecomment(id):
     comment.post.author.id == current_user.id:
         comment.disabled = not comment.disabled
         db.session.add(comment)
-        return redirect(url_for('.post', id=comment.post_id))
+        return redirect(url_for('.moderate'))
     else:
         abort(403)
 
-
+@main.route('/moderate')
+@permission_required(Permission.MODERATE_COMMENTS)
+@login_required
+def moderate():
+    page = request.args.get('page', 1, type=int)
+    pagination = Comment.query.order_by(Comment.timestamp.desc()).paginate(
+        page, per_page=current_app.config['FLASKY_COMMENTS_PER_PAGE'],
+        error_out=False)
+    comments = pagination.items
+    return render_template('moderate.jinja', comments=comments,
+                           pagination=pagination, page=page, endpoint='.moderate')

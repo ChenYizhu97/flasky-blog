@@ -1,0 +1,15 @@
+{% extends 'base.jinja' %}
+{% import '_macros.jinja' as macros%}
+
+{% block title %}Flasky - Comment Moderation{% endblock %}
+
+{% block pagecontent %}
+    <div class="page-header">
+        <h1>Comment Moderation</h1>
+    </div>
+    {% set moderate = True %}
+    {% include '_comments.jinja'  %}
+    <div class="pagination">
+    {{ macros.pagination_widget(pagination, endpoint, id=id, fragement=comment) }}
+    </div>
+{% endblock %}

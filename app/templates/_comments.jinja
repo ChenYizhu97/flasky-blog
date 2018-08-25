@@ -1,9 +1,5 @@
 <ul class="comment">
     {% for comment in comments %}
-        {% if not comment.disabled or 
-            current_user.is_administrator() or 
-            current_user.username==posts[0].author.username or 
-            current_user.can(Permission.MODERATE_COMMENTS) %}
         <li class="comment">
             <div class="comment-thumbnail">
                 <a href="{{ url_for('.user', username=comment.author.username) }}">
@@ -19,16 +15,19 @@
                 </a>
             </div>
             <div class="comment-body">
-                {% if comment.html_body %}
-                    <p>{{ comment.html_body }}</p>
-                {% else %}
-                    <p>{{ comment.body }}</p>
+                {% if comment.disabled %}
+                    This comment has been disabled by a moderator
+                {% endif %}
+                {% if moderate or not comment.disabled%}
+                    {% if comment.html_body %}
+                        <p>{{ comment.html_body }}</p>
+                    {% else %}
+                        <p>{{ comment.body }}</p>
+                    {% endif %}
                 {% endif %}
             </div>
             <div class="comment-footer">
-                {% if current_user.is_administrator() or 
-                    current_user.username==posts[0].author.username or
-                    current_user.can(Permission.MODERATE_COMMENTS)%}
+                {% if moderate%}
                     {% if comment.disabled %}
                     <a href="{{ url_for('.changecomment', id=comment.id) }}" class="btn btn-default btn-xs">
                         enabled
@@ -41,6 +40,5 @@
                 {% endif %}
             </div>
         </li>
-        {% endif %}
     {% endfor %}
 </ul>
