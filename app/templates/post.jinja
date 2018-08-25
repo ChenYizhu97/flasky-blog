@@ -6,7 +6,11 @@
 
 {% block pagecontent %}
     {% include '_posts.jinja' %}
+    {% if current_user.can(Permission.COMMENT)%}
     {{ wtf.quick_form(form) }}
+    {% endif %}
+    <div id="comment">
     {% include '_comments.jinja'  %}
-    {{ macros.pagination_widget(pagenation, endpoint, id=id) }}
+    {{ macros.pagination_widget(pagination, endpoint, id=id, fragement=comment) }}
+    </div>
 {% endblock %}

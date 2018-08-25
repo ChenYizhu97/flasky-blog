@@ -86,11 +86,32 @@ def edit_profile_admin(id):
 
 @main.route('/post/<int:id>', methods=['GET', 'POST'])
 def post(id):
-    form = CommentForm()
-    if form.validate_on_submit():
-        comment = Comment()
     post = Post.query.get_or_404(id)
-    return render_template('post.jinja', posts=[post])
+    page = request.args.get('page', 1, type=int)
+    if page == -1:
+        page = (post.comments.count()-1)/current_app.config['FLASKY_COMMENTS_PER_PAGE'] + 1
+    pagination = Comment.query.filter_by(post_id=post.id) \
+                .order_by(Comment.timestamp.asc()).paginate(
+                        page,
+                        per_page=current_app.config['FLASKY_POSTS_PER_PAGE'],
+                        error_out=False
+                    )
+    form = CommentForm()
+    if current_user.can(Permission.COMMENT) and \
+            form.validate_on_submit():
+        comment = Comment(author=current_user._get_current_object(),
+                          post=post,
+                          body=form.body.data)
+        db.session.add(comment)
+        return redirect(url_for('.post', id=id))
+    comments = pagination.items
+    return render_template('post.jinja',
+                           posts=[post],
+                           form=form,
+                           comments=comments,
+                           pagination=pagination,
+                           endpoint='.post',
+                           id=id)
 
 @main.route('/edit/<int:id>', methods=['GET','POST'])
 @login_required
@@ -173,3 +194,19 @@ def show_followed():
     resp = make_response(redirect(url_for('.index')))
     resp.set_cookie('show_followed', '1', max_age=30*24*60*60)
     return resp
+
+@main.route('/diable/<int:id>')
+@login_required
+def changecomment(id):
+    comment = Comment.query.get_or_404(id)
+    if current_user.is_administrator() or \
+    current_user.can(Permission.MODERATE_COMMENTS) or \
+    comment.author_id == current_user.id or \
+    comment.post.author.id == current_user.id:
+        comment.disabled = not comment.disabled
+        db.session.add(comment)
+        return redirect(url_for('.post', id=comment.post_id))
+    else:
+        abort(403)
+
+

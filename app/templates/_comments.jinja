@@ -1,37 +1,46 @@
 <ul class="comment">
     {% for comment in comments %}
-    <li class="comment">
-        <div class="comment-thumbnail">
-            <a href="{{ url_for('.user', username=comment.author.username) }}">
-                <img src="{{ comment.author.gravatar(size=40) }}">
-            </a>
-        </div>
-        <div class="comment-date">
-            {{ moment(comment.timestamp).format('L') }}
-        </div>
-        <div class="comment-author">
-            <a href="{{ url_for('.user', username=comment.author.username) }}">
-                {{ comment.author.username }}
-            </a>
-        </div>
-        <div class="comment-body">
-            {% if comment.html_body %}
-                <p>{{ comment.html_body }}</p>
-            {% else %}
-                <p>{{ comment.body }}</p>
-            {% endif %}
-        </div>
-        <div class="comment-footer">
-            {% if comment.disabled %}
-            <a href="" class="btn btn-success">
-                enabled
-            </a>
-            {% else %}
-            <a href="" class="btn btn-error">
-                disabled
-            </a>
-            {% endif %}
-        </div>
-    </li>
+        {% if not comment.disabled or 
+            current_user.is_administrator() or 
+            current_user.username==posts[0].author.username or 
+            current_user.can(Permission.MODERATE_COMMENTS) %}
+        <li class="comment">
+            <div class="comment-thumbnail">
+                <a href="{{ url_for('.user', username=comment.author.username) }}">
+                    <img src="{{ comment.author.gravatar(size=40) }}">
+                </a>
+            </div>
+            <div class="comment-date">
+                {{ moment(comment.timestamp).format('L') }}
+            </div>
+            <div class="comment-author">
+                <a href="{{ url_for('.user', username=comment.author.username) }}">
+                    {{ comment.author.username }}
+                </a>
+            </div>
+            <div class="comment-body">
+                {% if comment.html_body %}
+                    <p>{{ comment.html_body }}</p>
+                {% else %}
+                    <p>{{ comment.body }}</p>
+                {% endif %}
+            </div>
+            <div class="comment-footer">
+                {% if current_user.is_administrator() or 
+                    current_user.username==posts[0].author.username or
+                    current_user.can(Permission.MODERATE_COMMENTS)%}
+                    {% if comment.disabled %}
+                    <a href="{{ url_for('.changecomment', id=comment.id) }}" class="btn btn-default btn-xs">
+                        enabled
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('.changecomment', id=comment.id) }}" class="btn btn-danger btn-xs">
+                        disabled
+                    </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </li>
+        {% endif %}
     {% endfor %}
 </ul>

@@ -118,7 +118,6 @@ class User(db.Model, UserMixin):
     
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
-        self.follow(self)
         if self.role is None:
             if self.email == current_app.config['FLASKY_ADMIN']:
                 self.role = Role.query.filter_by(permissions=0xff).first()
@@ -126,6 +125,7 @@ class User(db.Model, UserMixin):
                 self.role = Role.query.filter_by(default=True).first()
         if self.email is not None and self.avatar_hash is None:
             self.avatar_hash = hashlib.md5(self.email.encode('utf-8')).hexdigest()
+        self.follow(self)
 
     def can(self, permissions):
         return self.role is not None and \
