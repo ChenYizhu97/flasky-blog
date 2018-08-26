@@ -279,7 +279,7 @@ class Post(db.Model):
     
     @staticmethod
     def from_json(json_post):
-        body = json_post.json
+        body = json_post.get('body')
         if body is None or body == '':
             raise ValidationError('Post does not have abody')
         return Post(body=body)
