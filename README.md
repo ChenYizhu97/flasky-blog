@@ -1,3 +1,3 @@
-# flaskblog
+# flasky
 
-This is an implementation of the demo blog in book "Flask Web Development: Developing Web Applications with Python" 
+This is the demo blog introduced in book "Flask Web Development: Developing Web Applications with Python" (first edition)
